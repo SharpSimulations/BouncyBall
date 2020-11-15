@@ -16,10 +16,13 @@ namespace BouncyBall
         private int m_BallWidth;
         private int m_BallHeight;
         private int m_BallposX, m_BallposY;   // Position.
-        private int m_BallVelX, m_BallVelY; // Velocity.
+        private int m_BallVelX, m_BallVelY;   // Velocity.
+        private int m_Volume;
+        private int m_Mass;
+        private int m_Density = 1;
         private Color m_Color;
 
-        public Ball(int ballDiameter, int ballVelX, int ballVelY, int ballPosX, int ballPosY)
+        public Ball(int ballDiameter, int ballVelX, int ballVelY, int ballPosX, int ballPosY, Color color)
         {
             m_BallRadius = ballDiameter / 2;
             m_BallDiameter = ballDiameter;
@@ -28,16 +31,16 @@ namespace BouncyBall
             m_BallposY = ballPosY;
             m_BallVelX = ballVelX;
             m_BallVelY = ballVelY;
-            m_Color = Color.FromArgb(r.Next(0, 256), r.Next(0, 256), r.Next(0, 256)); ;
-
+            m_Color = color;
         }
 
         public void DrawBall(Graphics graphics)
         {
             Point end = new Point(m_BallVelX + GetCenterPosition().X, m_BallVelY + GetCenterPosition().Y);
-            graphics.FillEllipse(Brushes.Red, m_BallposX, m_BallposY, m_BallWidth, m_BallHeight);
+            //the circles are drawn from 
+            graphics.FillEllipse(new SolidBrush(m_Color), m_BallposX, m_BallposY, m_BallWidth, m_BallHeight);
             graphics.DrawEllipse(Pens.Black, m_BallposX, m_BallposY, m_BallWidth, m_BallHeight);
-            graphics.DrawLine(Pens.Black, GetCenterPosition(), end); //draw vector
+            graphics.DrawLine(Pens.Black, GetCenterPosition(), end); //the vector of the velocity
         }
 
 

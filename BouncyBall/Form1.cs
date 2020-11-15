@@ -51,7 +51,8 @@ namespace BouncyBall
                 balls.Add(new Ball(ballSize, rnd.Next(1, rnd.Next(1, m_MaxVelocity)), 
                                             rnd.Next(1, rnd.Next(1, m_MaxVelocity)), 
                                             rnd.Next(0, ClientSize.Width - ballSize), 
-                                            rnd.Next(0, ClientSize.Height - ballSize)));
+                                            rnd.Next(0, ClientSize.Height - ballSize),
+                                            Color.FromArgb(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256))));
             }
             
             // Use double buffering to reduce flicker.

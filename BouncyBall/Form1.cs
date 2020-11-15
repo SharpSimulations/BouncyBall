@@ -17,9 +17,10 @@ namespace BouncyBall
         List<Ball> balls = new List<Ball>();
         private int m_MaxBallSize = 100;
         private int m_MaxVelocity = 30;
-        private const int m_Frequency = 60;
+        private const int m_Frequency = 50;
         private const decimal m_UpdateTime = 1000 / m_Frequency;
-        private int m_MaxNumberOfBalls = 4;
+        private int m_MaxNumberOfBalls = 15;
+        private int counter = 0;
 
         
         public Form1()
@@ -75,7 +76,37 @@ namespace BouncyBall
             {
                 ball.UpdatePosition(ClientSize.Width, ClientSize.Height);
             }
+            //check colisions between balls. for each ball pairs
+            //
+            for (int i = 0; i < m_MaxNumberOfBalls; i++)
+            {
+                for (int j = i + 1; j < m_MaxNumberOfBalls; j++)
+                {
+                    if (CheckCollisionBetweenBalls(balls[i], balls[j]))
+                    {
+                        Console.WriteLine("Col between ball {0} and ball {1}", i, j);
+
+                    }
+                }
+            }
             Refresh();
+        }
+
+        private bool CheckCollisionBetweenBalls(Ball ball1, Ball ball2)
+        {
+            counter++;
+            // If the distance between two centers is equal to or less than the sum of both radii,
+            //the two circles are colliding and need to bounce off each other.
+            double x = Math.Pow((ball1.GetRadius() + ball2.GetRadius()),2);
+            return (x >= DistanceBetweenTwoBallsSquared(ball1, ball2));
+        }
+
+        private double DistanceBetweenTwoBallsSquared(Ball ball1, Ball ball2)
+        {
+            //distance between 2 circles are derived by the equation
+            //d = Squrt((x2-x1)^2 + (y2-y1)^2)
+            //but iam not using the sqrt, so d^2 = (x2-x1)^2 + (y2-y1)^2
+            return Math.Pow((ball2.GetCenterPosition().X - ball1.GetCenterPosition().X), 2) + Math.Pow((ball2.GetCenterPosition().Y - ball1.GetCenterPosition().Y), 2);
         }
     }
 }

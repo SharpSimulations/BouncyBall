@@ -12,23 +12,22 @@ namespace BouncyBall
     {
         Random r = new Random();
         private int m_BallDiameter;
-        private int m_BallRadius;
-        private int m_BallWidth;
-        private int m_BallHeight;
-        private int m_BallposX, m_BallposY;   // Position.
+        private float m_BallRadius;
+        private float m_BallWidth;
+        private float m_BallHeight;
+        private Point m_CenterPoint;
         private int m_BallVelX, m_BallVelY;   // Velocity.
         private int m_Volume;
         private int m_Mass;
         private int m_Density = 1;
         private Color m_Color;
 
-        public Ball(int ballDiameter, int ballVelX, int ballVelY, int ballPosX, int ballPosY, Color color)
+        public Ball(float ballRadius, int ballVelX, int ballVelY, Point centerPoint, Color color)
         {
-            m_BallRadius = ballDiameter / 2;
-            m_BallDiameter = ballDiameter;
-            m_BallWidth = m_BallHeight = ballDiameter;
-            m_BallposX = ballPosX;
-            m_BallposY = ballPosY;
+            m_BallRadius = ballRadius;
+            m_BallWidth = m_BallHeight = ballRadius * 2;
+            m_CenterPoint = centerPoint;
+
             m_BallVelX = ballVelX;
             m_BallVelY = ballVelY;
             m_Color = color;
@@ -37,44 +36,61 @@ namespace BouncyBall
         public void DrawBall(Graphics graphics)
         {
             Point end = new Point(m_BallVelX + GetCenterPosition().X, m_BallVelY + GetCenterPosition().Y);
-            //the circles are drawn from 
-            graphics.FillEllipse(new SolidBrush(m_Color), m_BallposX, m_BallposY, m_BallWidth, m_BallHeight);
-            graphics.DrawEllipse(Pens.Black, m_BallposX, m_BallposY, m_BallWidth, m_BallHeight);
+            //There is not a way to dray a circle directly, merely an eclipse, and the way that it is drown is using
+            //the bounding rectangle. Since now we have the centre point of the circle, and the radius we need to
+            //create a corresponding rectange. Use a helper function to abstract this away.
+            graphics.FillEllipse(new SolidBrush(m_Color), Circle2RectangleF(m_CenterPoint , m_BallRadius));
+            graphics.DrawEllipse(Pens.Black, Circle2RectangleF(m_CenterPoint, m_BallRadius));
             graphics.DrawLine(Pens.Black, GetCenterPosition(), end); //the vector of the velocity
         }
 
 
+        RectangleF Circle2RectangleF(Point centerPoint, float radius)
+        {
+            //a square with a circle incribed has edge length =  2 * radius  and starts
+            //on the apper corner
+            return new RectangleF(centerPoint.X - radius,
+                                  centerPoint.Y - radius,
+                                  radius * 2,
+                                  radius * 2);
+        }
+
         public void UpdatePosition(int boundingBoxWidth, int boundingBoxHeight)
         {
-            m_BallposX += m_BallVelX; //update the position
-            if (m_BallposX < 0)
+            m_CenterPoint.X += m_BallVelX; //update the position
+            if (m_CenterPoint.X - m_BallRadius < 0) //the perimeter of the circle touched the panel edges
             {
-                m_BallVelX = -m_BallVelX;
+                m_BallVelX = -m_BallVelX; //invert the velocity to simulate the perfect elastic bounce
             }
-            else if (m_BallposX + m_BallWidth > boundingBoxWidth)
+            else if (m_CenterPoint.X + m_BallRadius > boundingBoxWidth) //the perimeter of the circle touched the panel edges
             {
                 m_BallVelX = -m_BallVelX;
             }
 
-            m_BallposY += m_BallVelY;
-            if (m_BallposY < 0)
+            m_CenterPoint.Y += m_BallVelY;
+            if (m_CenterPoint.Y - m_BallRadius < 0)
             {
                 m_BallVelY = -m_BallVelY;
             }
-            else if (m_BallposY + m_BallHeight > boundingBoxHeight)
+            else if (m_CenterPoint.Y + m_BallRadius > boundingBoxHeight)
             {
                 m_BallVelY = -m_BallVelY;
             }
         }
 
-        public int GetRadius()
+        public float GetRadius()
         {
             return m_BallRadius;
         }
 
+        public float GetDiameter()
+        {
+            return m_BallRadius * 2;
+        }
+
         public Point GetCenterPosition()
-        {   
-            return new Point(m_BallposX + m_BallRadius, m_BallposY + m_BallRadius);
+        {
+            return m_CenterPoint;
         }
     }
 }

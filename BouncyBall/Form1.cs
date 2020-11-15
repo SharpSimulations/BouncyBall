@@ -15,9 +15,9 @@ namespace BouncyBall
     {
         // Some drawing parameters.
         List<Ball> balls = new List<Ball>();
-        private int m_MaxBallSize = 100;
-        private int m_MaxVelocity = 30;
-        private const int m_Frequency = 50;
+        private int m_MaxBallRadius = 50;
+        private int m_MaxVelocity = 20;
+        private const int m_Frequency = 10;
         private const decimal m_UpdateTime = 1000 / m_Frequency;
         private int m_MaxNumberOfBalls = 15;
         private int counter = 0;
@@ -46,13 +46,15 @@ namespace BouncyBall
             // On load Pick a random start position and velocity.
             for (int i = 0; i < m_MaxNumberOfBalls; i++)
             { 
-                int ballSize = rnd.Next(1, m_MaxBallSize);
-            
-                balls.Add(new Ball(ballSize, rnd.Next(1, rnd.Next(1, m_MaxVelocity)), 
-                                            rnd.Next(1, rnd.Next(1, m_MaxVelocity)), 
-                                            rnd.Next(0, ClientSize.Width - ballSize), 
-                                            rnd.Next(0, ClientSize.Height - ballSize),
-                                            Color.FromArgb(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256))));
+           
+                balls.Add(new Ball(rnd.Next(1, m_MaxBallRadius), 
+                                rnd.Next(1, rnd.Next(1, m_MaxVelocity)),  //random velocity x component
+                                rnd.Next(1, rnd.Next(1, m_MaxVelocity)),  //random velocity y component
+                                 //random center point. make it though inside the rectangle which is offset from the application window
+                                 //by the maximum possible ball radius. That way we can guarranty that no ball will start with the perimeter
+                                 //outside the bounds of the application window
+                                new Point(rnd.Next(m_MaxBallRadius, ClientSize.Width - m_MaxBallRadius), rnd.Next(m_MaxBallRadius, ClientSize.Height - m_MaxBallRadius)), 
+                                Color.FromArgb(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256)))); //random color.
             }
             
             // Use double buffering to reduce flicker.

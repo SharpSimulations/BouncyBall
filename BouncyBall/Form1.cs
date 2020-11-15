@@ -19,9 +19,9 @@ namespace BouncyBall
         private int m_MaxVelocity = 5;
         private const int m_Frequency = 1000;
         private const decimal m_UpdateTime = 1000 / m_Frequency;
-        private int m_MaxNumberOfBalls = 12;
+        private const int m_MaxNumberOfBalls = 12;
         private int counter = 0;
-        bool[,] m_CollisionTracker = new bool[12, 12];
+        bool[,] m_CollisionTracker = new bool[m_MaxNumberOfBalls, m_MaxNumberOfBalls];
 
 
         public Form1()
@@ -53,6 +53,7 @@ namespace BouncyBall
                 }
             }
         }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -267,9 +268,6 @@ namespace BouncyBall
             ball1.UpdateVelocityAfterCollision(newVelX1, newVelY1);
             ball2.UpdateVelocityAfterCollision(newVelX2, newVelY2);
         }
-
-
-
     }
 }
 

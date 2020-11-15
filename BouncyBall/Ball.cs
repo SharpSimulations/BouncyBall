@@ -17,9 +17,10 @@ namespace BouncyBall
         private float m_BallHeight;
         private Point m_CenterPoint;
         private int m_BallVelX, m_BallVelY;   // Velocity.
-        private int m_Volume;
-        private int m_Mass;
-        private int m_Density = 1;
+        private double m_Volume;
+        private double m_Mass;
+        private const int m_Density = 1;
+        private double m_Momentum;
         private Color m_Color;
 
         public Ball(float ballRadius, int ballVelX, int ballVelY, Point centerPoint, Color color)
@@ -31,6 +32,12 @@ namespace BouncyBall
             m_BallVelX = ballVelX;
             m_BallVelY = ballVelY;
             m_Color = color;
+
+            //calculate the mass from its dimensions
+            //first calculate the volume, assume unit thickness
+            m_Volume = Math.PI * Math.Pow(m_BallRadius, 2) * 1.0;
+            //then calculate the mass
+            m_Mass = m_Volume * m_Density;
         }
 
         public void DrawBall(Graphics graphics)

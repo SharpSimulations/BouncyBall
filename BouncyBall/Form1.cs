@@ -88,7 +88,6 @@ namespace BouncyBall
                     if (CheckCollisionBetweenBalls(balls[i], balls[j]))
                     {
                         Console.WriteLine("Col between ball {0} and ball {1}", i, j);
-
                     }
                 }
             }

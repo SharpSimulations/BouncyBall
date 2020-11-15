@@ -36,15 +36,18 @@ namespace BouncyBall
             return m_Magnitude * Math.Cos(m_Direction);
         }
 
+
         public double GetMagnitudeY()
         {
             return m_Magnitude * Math.Sin(m_Direction);
         }
 
+
         public double GetMagnitude()
         {
             return m_Magnitude;
         }
+
 
         public Point GetOrigin()
         {

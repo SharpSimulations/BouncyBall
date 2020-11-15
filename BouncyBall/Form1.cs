@@ -17,9 +17,9 @@ namespace BouncyBall
         List<Ball> balls = new List<Ball>();
         private int m_MaxBallRadius = 50;
         private int m_MaxVelocity = 20;
-        private const int m_Frequency = 10;
+        private const int m_Frequency = 500;
         private const decimal m_UpdateTime = 1000 / m_Frequency;
-        private int m_MaxNumberOfBalls = 15;
+        private int m_MaxNumberOfBalls = 2;
         private int counter = 0;
 
         
@@ -49,11 +49,11 @@ namespace BouncyBall
            
                 balls.Add(new Ball(rnd.Next(1, m_MaxBallRadius), 
                                 rnd.Next(1, rnd.Next(1, m_MaxVelocity)),  //random velocity x component
-                                rnd.Next(1, rnd.Next(1, m_MaxVelocity)),  //random velocity y component
+                                0,//rnd.Next(1, rnd.Next(1, m_MaxVelocity)),  //random velocity y component
                                  //random center point. make it though inside the rectangle which is offset from the application window
                                  //by the maximum possible ball radius. That way we can guarranty that no ball will start with the perimeter
                                  //outside the bounds of the application window
-                                new Point(rnd.Next(m_MaxBallRadius, ClientSize.Width - m_MaxBallRadius), rnd.Next(m_MaxBallRadius, ClientSize.Height - m_MaxBallRadius)), 
+                                new Point(rnd.Next(m_MaxBallRadius, ClientSize.Width - m_MaxBallRadius), /*rnd.Next(m_MaxBallRadius, ClientSize.Height - m_MaxBallRadius)*/50), 
                                 Color.FromArgb(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256)))); //random color.
                 balls[i].PrintBallInfo();
             }
@@ -90,6 +90,7 @@ namespace BouncyBall
                     if (CheckCollisionBetweenBalls(balls[i], balls[j]))
                     {
                         Console.WriteLine("Col between ball {0} and ball {1}", i, j);
+                        DealWithColliction(balls[i], balls[j]);
                     }
                 }
             }
@@ -112,5 +113,23 @@ namespace BouncyBall
             //but iam not using the sqrt, so d^2 = (x2-x1)^2 + (y2-y1)^2
             return Math.Pow((ball2.GetCenterPosition().X - ball1.GetCenterPosition().X), 2) + Math.Pow((ball2.GetCenterPosition().Y - ball1.GetCenterPosition().Y), 2);
         }
+
+
+        private void DealWithColliction(Ball ball1, Ball ball2)
+        {
+            //we have to request the mass and current velocity from the two objects
+            //involved in the collition. 
+            double m1 = ball1.GetMass();
+            double m2 = ball2.GetMass();
+            double massTotal = m1 + m2;
+            double newVelX1 = ((m1 - m2) * ball1.GetVelX() + 2 * m2 * ball2.GetVelX()) / massTotal;
+            double newVelY1 = ((m1 - m2) * ball1.GetVelY() + 2 * m2 * ball2.GetVelY()) / massTotal;
+            double newVelX2 = (2 * m1 * ball1.GetVelX() + (m2 - m1) * ball2.GetVelX()) / massTotal;
+            double newVelY2 = (2 * m1 * ball1.GetVelY() + (m2 - m1) * ball2.GetVelY()) / massTotal;
+
+            ball1.UpdateVelocityAfterCollision(newVelX1, newVelY1);
+            ball2.UpdateVelocityAfterCollision(newVelX2, newVelY2);
+        }
     }
 }
+

@@ -11,22 +11,17 @@ namespace BouncyBall
     class Ball
     {
         Random r = new Random();
-        private int m_BallDiameter;
         private float m_BallRadius;
-        private float m_BallWidth;
-        private float m_BallHeight;
-        private Point m_CenterPoint;
+        private PointD m_CenterPoint;
         private double m_BallVelX, m_BallVelY;   // Velocity.
         private readonly double m_Volume;
         private readonly double m_Mass;
         private const int m_Density = 1;
-        private double m_Momentum;
         private Color m_Color;
 
-        public Ball(float ballRadius, double ballVelX, double ballVelY, Point centerPoint, Color color)
+        public Ball(float ballRadius, double ballVelX, double ballVelY, PointD centerPoint, Color color)
         {
             m_BallRadius = ballRadius;
-            m_BallWidth = m_BallHeight = ballRadius * 2;
             m_CenterPoint = centerPoint;
 
             m_BallVelX = ballVelX;
@@ -57,24 +52,24 @@ namespace BouncyBall
             graphics.DrawEllipse(Pens.Black, Circle2RectangleF(m_CenterPoint, m_BallRadius));
 
             //lets also draw the vector of the velocity
-            Point end = new Point((int)m_BallVelX + GetCenterPosition().X, (int)m_BallVelY + GetCenterPosition().Y);
-            graphics.DrawLine(Pens.Black, GetCenterPosition(), end); //the vector of the velocity
+            PointD end = new PointD(m_BallVelX + GetCenterPosition().X, m_BallVelY + GetCenterPosition().Y);
+            graphics.DrawLine(Pens.Black, GetCenterPosition().ToPoint(), end.ToPoint()); //the vector of the velocity
         }
 
 
-        RectangleF Circle2RectangleF(Point centerPoint, float radius)
+        RectangleF Circle2RectangleF(PointD centerPoint, float radius)
         {
             //a square with a circle incribed has edge length =  2 * radius  and starts
             //on the apper corner
-            return new RectangleF(centerPoint.X - radius,
-                                  centerPoint.Y - radius,
+            return new RectangleF((float)centerPoint.X - radius,
+                                  (float)centerPoint.Y - radius,
                                   radius * 2,
                                   radius * 2);
         }
 
         public void UpdatePosition(int boundingBoxWidth, int boundingBoxHeight)
         {
-            m_CenterPoint.X += (int)(m_BallVelX); //update the position
+            m_CenterPoint.X += m_BallVelX; //update the position
             if (m_CenterPoint.X - m_BallRadius < 0) //the perimeter of the circle touched the panel edges
             {
                 m_BallVelX = -m_BallVelX; //invert the velocity to simulate the perfect elastic bounce
@@ -84,7 +79,7 @@ namespace BouncyBall
                 m_BallVelX = -m_BallVelX;
             }
 
-            m_CenterPoint.Y += (int)m_BallVelY;
+            m_CenterPoint.Y += m_BallVelY;
             if (m_CenterPoint.Y - m_BallRadius < 0)
             {
                 m_BallVelY = -m_BallVelY;
@@ -169,7 +164,7 @@ namespace BouncyBall
             return m_BallRadius * 2;
         }
 
-        public Point GetCenterPosition()
+        public PointD GetCenterPosition()
         {
             return m_CenterPoint;
         }

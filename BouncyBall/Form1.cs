@@ -19,13 +19,15 @@ namespace BouncyBall
         private int m_MaxVelocity = 5;
         private const int m_Frequency = 1000;
         private const decimal m_UpdateTime = 1000 / m_Frequency;
-        private int m_MaxNumberOfBalls = 4;
+        private int m_MaxNumberOfBalls = 12;
         private int counter = 0;
+        bool[,] m_CollisionTracker = new bool[12, 12];
 
-        
+
         public Form1()
         {
             InitializeComponent();
+            InitArray();
         }
 
 
@@ -37,6 +39,18 @@ namespace BouncyBall
             foreach (Ball ball in balls)
             { 
                 ball.DrawBall(e.Graphics);
+            }
+        }
+
+
+        private void InitArray()
+        {
+            for (int i = 0; i < m_CollisionTracker.GetLength(0); i++)
+            {
+                for (int j = 0; j < m_CollisionTracker.GetLength(1); j++)
+                {
+                    m_CollisionTracker[i,j] = false;
+                }
             }
         }
 
@@ -53,7 +67,7 @@ namespace BouncyBall
                                  //random center point. make it though inside the rectangle which is offset from the application window
                                  //by the maximum possible ball radius. That way we can guarranty that no ball will start with the perimeter
                                  //outside the bounds of the application window
-                                new Point(rnd.Next(m_MaxBallRadius, ClientSize.Width - m_MaxBallRadius), rnd.Next(m_MaxBallRadius, ClientSize.Height - m_MaxBallRadius)), 
+                                new PointD(rnd.Next(m_MaxBallRadius, ClientSize.Width - m_MaxBallRadius), rnd.Next(m_MaxBallRadius, ClientSize.Height - m_MaxBallRadius)), 
                                 Color.FromArgb(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256)))); //random color.
                 balls[i].PrintBallInfo();
             }
@@ -87,11 +101,20 @@ namespace BouncyBall
             {
                 for (int j = i + 1; j < m_MaxNumberOfBalls; j++)
                 {
-                    if (CheckCollisionBetweenBalls(balls[i], balls[j]))
+                    //if a collision has occured, and it hasn't been handled yet
+                    if ((CheckCollisionBetweenBalls(balls[i], balls[j])) && !m_CollisionTracker[i,j])
                     {
+                        //set the flag as handle. keep the flag true until there is not a collision anymore
+                        m_CollisionTracker[i, j] = true;
                         Console.WriteLine("Col between ball {0} and ball {1}", i, j);
                         DealWithColliction2D(balls[i], balls[j]);
                     }
+
+                    if ((!CheckCollisionBetweenBalls(balls[i], balls[j])) && m_CollisionTracker[i, j])
+                    {
+                        m_CollisionTracker[i, j] = false;
+                    }
+
                 }
             }
             Refresh();

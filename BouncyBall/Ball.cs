@@ -40,6 +40,14 @@ namespace BouncyBall
             m_Mass = m_Volume * m_Density;
         }
 
+
+        public void PrintBallInfo()
+        {
+            Console.WriteLine("Ball Radius {0}, Ball location {1}x{2}, Ball Mass {3}",
+                              m_BallRadius, m_CenterPoint.X, m_CenterPoint.Y, m_Mass);
+        }
+
+
         public void DrawBall(Graphics graphics)
         {
             Point end = new Point(m_BallVelX + GetCenterPosition().X, m_BallVelY + GetCenterPosition().Y);

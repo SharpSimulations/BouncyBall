@@ -55,6 +55,7 @@ namespace BouncyBall
                                  //outside the bounds of the application window
                                 new Point(rnd.Next(m_MaxBallRadius, ClientSize.Width - m_MaxBallRadius), rnd.Next(m_MaxBallRadius, ClientSize.Height - m_MaxBallRadius)), 
                                 Color.FromArgb(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256)))); //random color.
+                balls[i].PrintBallInfo();
             }
             
             // Use double buffering to reduce flicker.
@@ -80,7 +81,8 @@ namespace BouncyBall
                 ball.UpdatePosition(ClientSize.Width, ClientSize.Height);
             }
             //check colisions between balls. for each ball pairs
-            //
+            //ie, if there are 4 balls we should check 1,2 - 1,3 - 1, 4, then 2,3, 2,4, then 3 , 4
+            //the total number of pairs are 
             for (int i = 0; i < m_MaxNumberOfBalls; i++)
             {
                 for (int j = i + 1; j < m_MaxNumberOfBalls; j++)

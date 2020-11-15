@@ -16,10 +16,10 @@ namespace BouncyBall
         // Some drawing parameters.
         List<Ball> balls = new List<Ball>();
         private int m_MaxBallRadius = 50;
-        private int m_MaxVelocity = 20;
-        private const int m_Frequency = 500;
+        private int m_MaxVelocity = 5;
+        private const int m_Frequency = 1000;
         private const decimal m_UpdateTime = 1000 / m_Frequency;
-        private int m_MaxNumberOfBalls = 2;
+        private int m_MaxNumberOfBalls = 4;
         private int counter = 0;
 
         
@@ -49,11 +49,11 @@ namespace BouncyBall
            
                 balls.Add(new Ball(rnd.Next(1, m_MaxBallRadius), 
                                 rnd.Next(1, rnd.Next(1, m_MaxVelocity)),  //random velocity x component
-                                0,//rnd.Next(1, rnd.Next(1, m_MaxVelocity)),  //random velocity y component
+                                rnd.Next(1, rnd.Next(1, m_MaxVelocity)),  //random velocity y component
                                  //random center point. make it though inside the rectangle which is offset from the application window
                                  //by the maximum possible ball radius. That way we can guarranty that no ball will start with the perimeter
                                  //outside the bounds of the application window
-                                new Point(rnd.Next(m_MaxBallRadius, ClientSize.Width - m_MaxBallRadius), /*rnd.Next(m_MaxBallRadius, ClientSize.Height - m_MaxBallRadius)*/50), 
+                                new Point(rnd.Next(m_MaxBallRadius, ClientSize.Width - m_MaxBallRadius), rnd.Next(m_MaxBallRadius, ClientSize.Height - m_MaxBallRadius)), 
                                 Color.FromArgb(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256)))); //random color.
                 balls[i].PrintBallInfo();
             }
@@ -90,7 +90,7 @@ namespace BouncyBall
                     if (CheckCollisionBetweenBalls(balls[i], balls[j]))
                     {
                         Console.WriteLine("Col between ball {0} and ball {1}", i, j);
-                        DealWithColliction(balls[i], balls[j]);
+                        DealWithColliction2D(balls[i], balls[j]);
                     }
                 }
             }
@@ -115,10 +115,124 @@ namespace BouncyBall
         }
 
 
-        private void DealWithColliction(Ball ball1, Ball ball2)
+        private void DealWithColliction2D(Ball ball1, Ball ball2)
         {
-            //we have to request the mass and current velocity from the two objects
-            //involved in the collition. 
+            /*
+             * How we can deal with colisions?. There is a term called momentum (P)
+             * Momentum is defined to be the mass of an object multiplied by the velocity of the object
+             * This can be written as vecP = m*vecV, were P and V are vector quantities
+             * For 2 objects,  in a collision, the momentum of a system is conserved 
+             * (i.e. the total momentum of the system is the same after the collision as 
+             * it was before the collision - or as I like to say, what goes in must come out).
+             * A "system" consists of the two particles that are colliding. We can write this as
+             *  Pinit = Pfinal
+             *  
+             *  Also if something is moving it has kinetic energy, and if it is not moving it has no kinetic energy.
+             *  Κenergy is defined as KE= 1/2 * mass * vel^2. Kinetic energy is not a vector.
+             *   In an elastic collision (ie perfect) the kinetic energy is conserved: the initial kinetic energy 
+             *   of the system is equal to the final kinetic energy. We now have two conservation equations 
+             *   that will let us determine the final velocities of two colliding particles if we know their 
+             *   initial velocities and masses
+             *   so, mass1_init * vel1_init + mass2_init * vel2_init = mass1_final * vel1_final + mass2_final * vel2_final
+             *   and similarly for the kinetic energy
+             *   Ke1_init + Ke2_init = Ke1_final + Ke2_final
+             *   Using these 2 equations the Vfinal for both 1 & 2 can be found.
+             */
+        
+            //find the angle of the collision. Imagine a line connecting the centers of the 2 balls.
+            //imagine also the X axis. The angle between these 2 straight sections is the collision angle.
+
+            double dx = ball2.GetCenterPosition().X - ball1.GetCenterPosition().X;
+            double dy = ball2.GetCenterPosition().Y - ball1.GetCenterPosition().Y;
+            double collisionAngleRad;
+            if (dx == 0)
+            {
+                collisionAngleRad = Math.PI / 2;
+            }
+            else
+            {
+                collisionAngleRad = Math.Atan2(dy, dx);
+            }
+
+            //at this point we have the collision angle. We also have the velocity components of each ball in x and y
+            //but we also need the actuall angle and magnitude of the velocity vector. 
+            //this is very easily done using pythagorean theorem. Since this is a quantity that will be needed all the time
+            //it makes more sense to implement the calculation internally on the ball class.
+
+            double vel1 = ball1.GetVel();
+            double vel2 = ball2.GetVel();
+
+            double angle1Rad = ball1.GetDirectionInDegrees() * (Math.PI / 180);
+            double angle2Rad = ball2.GetDirectionInDegrees() * (Math.PI / 180);
+
+            //now what to do with all these angles. Well in 2d,  conservation of momentum applies to the components 
+            //of velocity resolved along the common normal surfaces of the colliding bodies at the point of contact. 
+            //In the case of the two spheres the velocity components involved are the components resolved along the 
+            //line of centers during the contact. Consequently, the components of velocity perpendicular to the line 
+            //of centers will be unchanged during the impact
+
+            //this means the following Here is my translation: If you view the collision along the line between the two spheres,
+            //the velocities along that line will undergo momentum conservation (the same way we calculated the x-components in Part 1),
+            //and the velocities perpendicular to that line won't change.
+
+            //We first want to change our mind set from the standard x-y reference frame, to the new reference frame where the x-axis lies along the collision line,
+            //and the y-axis is perpendicular to that. The figure shows the new vector components
+
+            //so lets find the velocity in the new coordinate system. Lets call the new coordinate system R.
+            double vel1xr = vel1 * Math.Cos((angle1Rad - collisionAngleRad));
+            double vel1yr = vel1 * Math.Sin((angle1Rad - collisionAngleRad));
+            double vel2xr = vel2 * Math.Cos((angle2Rad - collisionAngleRad));
+            double vel2yr = vel2 * Math.Sin((angle1Rad - collisionAngleRad));
+
+            //We now use the conservation of momentum to determine the new x velocities in our new reference frame, 
+            //and the y-components do not change. 
+
+            //find the final velocities in the normal reference frame
+            //the x velocities will obey the rules for a 1 - D collision
+            double m1 = ball1.GetMass();
+            double m2 = ball2.GetMass();
+            double massTotal = m1 + m2;
+            double vel1fxr = ((m1 - m2) * vel1xr + (m2 + m2) * vel2xr) / massTotal;
+            double vel2fxr = (2 * m1 * vel1xr + (m2 - m1) * vel2xr) / massTotal;
+            //the y velocities will not be changed
+            double vel1fyr = vel1yr;
+            double vel2fyr = vel2yr;
+
+            //We now have the 'after collision' velocities, but we have to transform the components back to the standard x-y reference frame.
+            //convert back to the standard x,y coordinates
+            double newVelX1 = Math.Cos(collisionAngleRad) * vel1fxr + Math.Cos(collisionAngleRad + Math.PI / 2) * vel1fyr;
+            double newVelY1 = Math.Sin(collisionAngleRad) * vel1fxr + Math.Sin(collisionAngleRad + Math.PI / 2) * vel1fyr;
+            double newVelX2 = Math.Cos(collisionAngleRad) * vel2fxr + Math.Cos(collisionAngleRad + Math.PI / 2) * vel2fyr;
+            double newVelY2 = Math.Sin(collisionAngleRad) * vel2fxr + Math.Sin(collisionAngleRad + Math.PI / 2) * vel2fyr;
+
+            ball1.UpdateVelocityAfterCollision(newVelX1, newVelY1);
+            ball2.UpdateVelocityAfterCollision(newVelX2, newVelY2);
+        }
+
+
+        private void DealWithColliction1D(Ball ball1, Ball ball2)
+        {
+            /*
+            * How we can deal with colisions?. There is a term called momentum (P)
+            * Momentum is defined to be the mass of an object multiplied by the velocity of the object
+            * This can be written as vecP = m*vecV, were P and V are vector quantities
+            * For 2 objects,  in a collision, the momentum of a system is conserved 
+            * (i.e. the total momentum of the system is the same after the collision as 
+            * it was before the collision - or as I like to say, what goes in must come out).
+            * A "system" consists of the two particles that are colliding. We can write this as
+            *  Pinit = Pfinal
+            *  
+            *  Also if something is moving it has kinetic energy, and if it is not moving it has no kinetic energy.
+            *  Κenergy is defined as KE= 1/2 * mass * vel^2. Kinetic energy is not a vector.
+            *   In an elastic collision (ie perfect) the kinetic energy is conserved: the initial kinetic energy 
+            *   of the system is equal to the final kinetic energy. We now have two conservation equations 
+            *   that will let us determine the final velocities of two colliding particles if we know their 
+            *   initial velocities and masses
+            *   so, mass1_init * vel1_init + mass2_init * vel2_init = mass1_final * vel1_final + mass2_final * vel2_final
+            *   and similarly for the kinetic energy
+            *   Ke1_init + Ke2_init = Ke1_final + Ke2_final
+            *   Using these 2 equations the Vfinal for both 1 & 2 can be found.
+            */
             double m1 = ball1.GetMass();
             double m2 = ball2.GetMass();
             double massTotal = m1 + m2;
@@ -130,6 +244,9 @@ namespace BouncyBall
             ball1.UpdateVelocityAfterCollision(newVelX1, newVelY1);
             ball2.UpdateVelocityAfterCollision(newVelX2, newVelY2);
         }
+
+
+
     }
 }
 

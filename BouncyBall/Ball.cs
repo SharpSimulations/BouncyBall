@@ -84,15 +84,15 @@ namespace BouncyBall
                 m_BallVelX = -m_BallVelX;
             }
 
-            //m_CenterPoint.Y += (int)m_BallVelY;
-            //if (m_CenterPoint.Y - m_BallRadius < 0)
-            //{
-            //    m_BallVelY = -m_BallVelY;
-            //}
-            //else if (m_CenterPoint.Y + m_BallRadius > boundingBoxHeight)
-            //{
-            //    m_BallVelY = -m_BallVelY;
-            //}
+            m_CenterPoint.Y += (int)m_BallVelY;
+            if (m_CenterPoint.Y - m_BallRadius < 0)
+            {
+                m_BallVelY = -m_BallVelY;
+            }
+            else if (m_CenterPoint.Y + m_BallRadius > boundingBoxHeight)
+            {
+                m_BallVelY = -m_BallVelY;
+            }
         }
 
 
@@ -113,6 +113,50 @@ namespace BouncyBall
             return m_BallVelY;
         }
 
+
+        /// <summary>
+        /// returns the magnitude of the velocity vector of the ball
+        /// </summary>
+        /// <returns></returns>
+        public double GetVel()
+        {
+            return Math.Sqrt( Math.Pow(m_BallVelX, 2) + Math.Pow(m_BallVelY, 2));
+        }
+
+
+        /// <summary>
+        /// returns the direction of the velocity vector.
+        /// </summary>
+        /// <returns></returns>
+        public double GetDirectionInDegrees()
+        {
+            //returns value in degrees
+            double divisor = Math.PI / 180.0;
+            if (m_BallVelX < 0)
+            {
+                return 180 + Math.Atan2(m_BallVelY, m_BallVelX) / divisor;
+            }
+            else if ((m_BallVelX > 0) && (m_BallVelY >= 0))
+            {
+                return Math.Atan2(m_BallVelY, m_BallVelX) / divisor;
+            }
+            else if ((m_BallVelX < 0) && (m_BallVelY < 0))
+            {
+                return 360 + Math.Atan2(m_BallVelY, m_BallVelX) / divisor;
+            }
+            else if ((m_BallVelX == 0) && (m_BallVelY == 0))
+            {
+                return 0;
+            }
+            else if ((m_BallVelX == 0) && (m_BallVelY >= 0))
+            {
+                return 90;
+            }
+            else
+            {
+                return 270;
+            }
+        }
 
 
         public float GetRadius()

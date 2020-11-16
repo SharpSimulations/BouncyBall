@@ -19,7 +19,7 @@ namespace BouncyBall
         private int m_MaxVelocity = 5;
         private const int m_Frequency = 1000;
         private const decimal m_UpdateTime = 1000 / m_Frequency;
-        private const int m_MaxNumberOfBalls = 12;
+        private const int m_MaxNumberOfBalls = 8;
         private int counter = 0;
         bool[,] m_CollisionTracker = new bool[m_MaxNumberOfBalls, m_MaxNumberOfBalls];
 
@@ -87,6 +87,8 @@ namespace BouncyBall
             MyTimer.Interval = ((int)m_UpdateTime); 
             MyTimer.Tick += new EventHandler(MyTimer_Tick);
             MyTimer.Start();
+
+
         }
 
          // Update the ball's position, bouncing if necessary.
@@ -104,7 +106,7 @@ namespace BouncyBall
                 for (int j = i + 1; j < m_MaxNumberOfBalls; j++)
                 {
                     //if a collision has occured, and it hasn't been handled yet
-                    if ((CheckCollisionBetweenBalls(balls[i], balls[j])) && !m_CollisionTracker[i,j])
+                    if ((CheckCollisionBetweenBalls(balls[i], balls[j])))// && !m_CollisionTracker[i,j])
                     {
                         //set the flag as handle. keep the flag true until there is not a collision anymore
                         m_CollisionTracker[i, j] = true;
@@ -112,14 +114,15 @@ namespace BouncyBall
                         DealWithColliction2D(balls[i], balls[j]);
                     }
 
-                    if ((!CheckCollisionBetweenBalls(balls[i], balls[j])) && m_CollisionTracker[i, j])
-                    {
-                        m_CollisionTracker[i, j] = false;
-                    }
+                    //if ((!CheckCollisionBetweenBalls(balls[i], balls[j])) && m_CollisionTracker[i, j])
+                    //{
+                    //    m_CollisionTracker[i, j] = false;
+                    //}
 
                 }
             }
             Refresh();
+
         }
 
         private bool CheckCollisionBetweenBalls(Ball ball1, Ball ball2)
@@ -163,7 +166,8 @@ namespace BouncyBall
              *   Ke1_init + Ke2_init = Ke1_final + Ke2_final
              *   Using these 2 equations the Vfinal for both 1 & 2 can be found.
              */
-        
+            
+            DistanceBetweenTwoBallsSquared(ball1, ball2);
             //find the angle of the collision. Imagine a line connecting the centers of the 2 balls.
             //imagine also the X axis. The angle between these 2 straight sections is the collision angle.
 
@@ -178,6 +182,8 @@ namespace BouncyBall
             {
                 collisionAngleRad = Math.Atan2(dy, dx);
             }
+
+            CorrectOverlapping(ball1, ball2, collisionAngleRad);
 
             //at this point we have the collision angle. We also have the velocity components of each ball in x and y
             //but we also need the actuall angle and magnitude of the velocity vector. 
@@ -232,6 +238,51 @@ namespace BouncyBall
 
             ball1.UpdateVelocityAfterCollision(newVelX1, newVelY1);
             ball2.UpdateVelocityAfterCollision(newVelX2, newVelY2);
+        }
+
+        private void CorrectOverlapping(Ball ball1, Ball ball2, double collisionAngleRad)
+        {
+            //we have the collision angle between the balls. If the ball was going too fast or too slow, the balls may have been going to fast and some overlap has been 
+            //occurred. Lets correct that.
+            //calculate the intersection distance
+            double distanceBetweenCircles = Math.Sqrt(DistanceBetweenTwoBallsSquared(ball1, ball2));
+            //since we know that the current distance between the circles is less than the sum of their radii, we can find the overlap distance
+            double overlapDistance = (ball1.GetRadius() + ball2.GetRadius()) - distanceBetweenCircles;
+            //but, since they dont have the same radii, they have to be moved a different amount.
+            //if the circles were equal then they would have to be moved overlapDistance / 2. But since they are not
+            //multiply this by a factor determined by their radius quotient
+            double ball1CorrectiveDistance = (overlapDistance / 2) * (ball1.GetRadius() / ball2.GetRadius()) * 1.1;
+            double ball2CorrectiveDistance = (overlapDistance / 2) * (ball2.GetRadius() / ball1.GetRadius()) * 1.1;
+
+            PointD ball1NewLocation = ball1.GetCenterPosition();
+            PointD ball2NewLocation = ball2.GetCenterPosition();
+            //now lets do the correction
+            //without any coordinate system transformation
+            //4 cases
+            if (ball1.GetCenterPosition().X > ball2.GetCenterPosition().X)
+            {
+                ball1NewLocation.X += ball1CorrectiveDistance;// * Math.Cos(collisionAngleRad);
+                ball2NewLocation.X -= ball2CorrectiveDistance;//  * Math.Cos(collisionAngleRad);
+            }
+            else
+            {
+                ball1NewLocation.X -= ball1CorrectiveDistance;//  * Math.Cos(collisionAngleRad);
+                ball2NewLocation.X += ball2CorrectiveDistance;//  * Math.Cos(collisionAngleRad);
+            }
+
+            if (ball1.GetCenterPosition().Y > ball2.GetCenterPosition().Y)
+            {
+                ball1NewLocation.Y += ball1CorrectiveDistance;//  * Math.Sin(collisionAngleRad);
+                ball2NewLocation.Y -= ball2CorrectiveDistance;//  * Math.Sin(collisionAngleRad);
+            }
+            else
+            {
+                ball1NewLocation.Y -= ball1CorrectiveDistance;//  * Math.Sin(collisionAngleRad);
+                ball2NewLocation.Y += ball2CorrectiveDistance;//  * Math.Sin(collisionAngleRad);
+            }
+
+            ball1.SetNewCenterPosition(ball1NewLocation);
+            ball2.SetNewCenterPosition(ball2NewLocation);
         }
 
 

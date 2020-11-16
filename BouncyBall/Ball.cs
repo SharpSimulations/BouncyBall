@@ -173,6 +173,11 @@ namespace BouncyBall
             return m_CenterPoint;
         }
 
+        public void SetNewCenterPosition(PointD newCenter)
+        {
+            m_CenterPoint = newCenter;
+        }
+
         public double GetMass()
         {
             return m_Mass;

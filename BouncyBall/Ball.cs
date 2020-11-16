@@ -72,20 +72,24 @@ namespace BouncyBall
             m_CenterPoint.X += m_BallVelX; //update the position
             if (m_CenterPoint.X - m_BallRadius < 0) //the perimeter of the circle touched the panel edges
             {
+                m_CenterPoint.X = m_BallRadius; //teleport at the point of intersection first
                 m_BallVelX = -m_BallVelX; //invert the velocity to simulate the perfect elastic bounce
             }
             else if (m_CenterPoint.X + m_BallRadius > boundingBoxWidth) //the perimeter of the circle touched the panel edges
             {
+                m_CenterPoint.X = boundingBoxWidth - m_BallRadius; //teleport at the point of intersection first
                 m_BallVelX = -m_BallVelX;
             }
 
             m_CenterPoint.Y += m_BallVelY;
             if (m_CenterPoint.Y - m_BallRadius < 0)
             {
+                m_CenterPoint.Y = m_BallRadius;
                 m_BallVelY = -m_BallVelY;
             }
             else if (m_CenterPoint.Y + m_BallRadius > boundingBoxHeight)
             {
+                m_CenterPoint.Y = boundingBoxHeight - m_BallRadius;
                 m_BallVelY = -m_BallVelY;
             }
         }
